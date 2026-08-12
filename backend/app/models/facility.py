@@ -1,11 +1,56 @@
 """
+Facility model - Day 3, SQLAlchemy 2.0 ORM version.
+Compare directly against Day 1's plain-Python version: same
+fields, same __repr__ shape - the class now also IS the database table
+"""
+
+#tells Python to treat every type annotation as a string literal, allowing
+# forward references to classes that are defined later in the file or in other modules
+from __future__ import annotations
+
+#loading the TYPE_CHECKING constant from the typing module, which is used to indicate
+# that certain imports are only needed for type checking and not at runtime.
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .base import Base
+
+#
+if TYPE_CHECKING:
+    from .operator import Operator
+    from .robot import Robot
+
+
+class Facility(Base):
+    #setting the table name for the facility model in the database
+    __tablename__ = "facilities"
+
+    #
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    location_region: Mapped[str] = mapped_column(String(50))
+    capacity: Mapped[int] = mapped_column(Integer)
+    supervisor_id: Mapped[int] = mapped_column(Integer)
+
+    robots: Mapped[list["Robot"]] = relationship(back_populates="facility")
+    operators: Mapped[list["Operator"]] = relationship(back_populates="facility")
+
+    def __repr__(self) -> str:
+        return (f"Facility(id={self.id}, name={self.name!r}, "
+                f"region={self.location_region!r})")
+
+
+
+"""
 Facility model - Day 1 plain-Python version.
 No database yet: state lives only in the `registry` class attribute.
 
 Here, we can demonstrate simple classes, class attributes, 
 and class methods. In the future, we will be using SQLAlchemy
  to manage our database models, but for now, we are keeping it simple.
-"""
+
 
 from typing import ClassVar
 
@@ -44,3 +89,5 @@ class Facility:
             if facility.id == facility_id:
                 return facility
         return None
+
+"""

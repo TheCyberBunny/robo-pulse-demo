@@ -1,6 +1,71 @@
 """
-Robot model - Day 1 plain-Python version.
+Robot model - Day 3, SQLAlchemy 2.0 ORM version.
 """
+
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import TYPE_CHECKING
+
+from sqlalchemy import CheckConstraint, ForeignKey, Integer, Numeric, String
+from sqlalchemy import Enum as SqlEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .base import Base
+from .enums import RobotStatus
+
+if TYPE_CHECKING:
+    from .facility import Facility
+    from .mission import Mission
+
+
+class Robot(Base):
+    __tablename__ = "robots"
+
+    #here we define a table-level constraint to ensure that the battery_level column
+    # is always between 0 and 100. This is a good practice to enforce data integrity
+    __table_args__ = (
+        CheckConstraint("battery_level BETWEEN 0 AND 100", name="battery_level_range"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    serial_number: Mapped[str] = mapped_column(String(50), unique=True)
+    model: Mapped[str] = mapped_column(String(100))
+    status: Mapped[RobotStatus] = mapped_column(
+        SqlEnum(
+            RobotStatus,
+            name="robot_status",
+            # Defines how the enum values are stored in the database. 
+            # In this case, we store the string representation of the enum members.
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
+        default=RobotStatus.IDLE,
+    )
+    battery_level: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    facility_id: Mapped[int] = mapped_column(Integer, ForeignKey("facilities.id"))
+
+    facility: Mapped["Facility"] = relationship(back_populates="robots")
+    missions: Mapped[list["Mission"]] = relationship(back_populates="robot")
+
+    LOW_BATTERY_THRESHOLD: int = 20
+
+    def is_low_battery(self, threshold: int | None = None) -> bool:
+        limit = threshold if threshold is not None else Robot.LOW_BATTERY_THRESHOLD
+        return self.battery_level < limit
+
+    def needs_maintenance(self) -> bool:
+        return self.status == RobotStatus.MAINTENANCE
+
+    def __repr__(self) -> str:
+        return (f"Robot(serial={self.serial_number!r}, model={self.model!r}, "
+                f"battery={self.battery_level}%, status={self.status.value})")
+    
+
+
+
+"""
+Robot model - Day 1 plain-Python version.
+
 
 from typing import ClassVar
 
@@ -61,3 +126,4 @@ class Robot:
     def __repr__(self) -> str:
         return (f"Robot(serial={self.serial_number!r}, model={self.model!r}, "
                 f"battery={self.battery_level}%, status={self.status.value})")
+"""
