@@ -29,9 +29,8 @@ async def list_colocation_discrepancies(
     GET /missions/discrepancies, with an optional priority filter.
 
     Selects only the four columns the response actually needs,
-    rather than full Mission/Robot/Operator objects - see the
-    Research Prompts in day04_demo_and_challenge.md for the tradeoff
-    this makes against day3_challenge.py's find_colocation_discrepancies_orm.
+    rather than full Mission/Robot/Operator objects, to reduce 
+    the amount of data sent over the wire.
     """
     statement = (
         select(
@@ -45,6 +44,7 @@ async def list_colocation_discrepancies(
         .where(Robot.facility_id != Operator.facility_id)
     )
 
+    #if a priority filter was provided, add it to the WHERE clause
     if priority is not None:
         statement = statement.where(Mission.priority == priority)
 

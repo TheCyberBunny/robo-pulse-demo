@@ -12,6 +12,7 @@ from .robot import Robot
 from .mission import Mission
 from .diagnostic_log import DiagnosticLog
 from .operator import Operator
+from .user import User, UserRole
 
 
 #this declares the list of public objects of that module, as interpreted by import *
@@ -19,5 +20,5 @@ from .operator import Operator
 __all__ = [
     "Base",
     "RobotStatus", "MissionPriority", "MissionStatus",
-    "Facility", "Robot", "Mission", "DiagnosticLog", "Operator",
+    "Facility", "Robot", "Mission", "DiagnosticLog", "Operator", "User",
 ]

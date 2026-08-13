@@ -30,3 +30,9 @@ class MissionStatus(str, Enum):
     IN_PROGRESS = "In-Progress"
     COMPLETED = "Completed"
     FAILED = "Failed"
+
+
+class UserRole(str, Enum):
+    FLEET_ADMIN = "Fleet Admin"
+    FIELD_OPERATOR = "Field Operator"
+    AUDITOR = "Auditor"
