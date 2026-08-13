@@ -3,13 +3,14 @@ RoboPulse Fleet Command Center
 Day 4 Answer Key - Mission endpoints.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db
-from app.models import Mission, MissionPriority, Operator, Robot
-from app.schemas.mission import DiscrepancyRead
+from app.dependencies import get_db, require_role
+from app.models import Mission, MissionPriority, MissionStatus, Operator, Robot, User, UserRole
+from app.schemas.mission import DiscrepancyRead, MissionRead, MissionStatusUpdate
+
 
 router = APIRouter(prefix="/missions", tags=["missions"])
 
@@ -21,6 +22,8 @@ async def list_colocation_discrepancies(
         description="Only return discrepancies for missions of this priority.",
     ),
     db: AsyncSession = Depends(get_db),
+    #Placeholder for authentication dependency, to be replaced with actual user dependency once implemented
+    _: User = Depends(get_db),
 ):
     """
     Business Question #2: Co-Location Discrepancy - a fourth time.
@@ -52,3 +55,29 @@ async def list_colocation_discrepancies(
 
     result = await db.execute(statement)
     return [dict(row) for row in result.mappings().all()]
+
+
+@router.patch("/{mission_id}/status", response_model=MissionRead)
+async def update_mission_status(
+    mission_id: int,
+    payload: MissionStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.FLEET_ADMIN, UserRole.FIELD_OPERATOR)),
+) -> Mission:
+    mission = await db.get(Mission, mission_id)
+    if mission is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Mission {mission_id} not found",
+        )
+
+    if payload.status == MissionStatus.COMPLETED:
+        mission.mark_completed()
+    elif payload.status == MissionStatus.FAILED:
+        mission.mark_failed()
+    else:
+        mission.status = payload.status
+
+    await db.commit()
+    await db.refresh(mission)
+    return mission
