@@ -2,6 +2,7 @@ import { Container, Typography, Box } from '@mui/material';
 import AppHeader from './components/layouts/AppHeader.jsx';
 import LoginForm from './components/auth/LoginForm.jsx';
 import RobotDataGrid from './components/robots/RobotDataGrid.jsx';
+import DiscrepancyDataGrid from './components/missions/DiscrepancyDataGrid.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 
 //main dashboard component that renders the application header and robot data grid
@@ -20,6 +21,12 @@ function Dashboard() {
           <Box sx={{ mb: 4 }}>
             <RobotDataGrid />
           </Box>
+          <Typography variant="h5" component="h2" gutterBottom>
+          Co-Location Discrepancies
+        </Typography>
+        <Box sx={{ mb: 4 }}>
+          <DiscrepancyDataGrid />
+        </Box>
         </Container>
       </>
     );
