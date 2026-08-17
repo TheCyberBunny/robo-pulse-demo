@@ -7,6 +7,7 @@ Run from backend/ with the venv active:
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import robots, missions, auth
 
@@ -19,6 +20,17 @@ app = FastAPI(
         "inspection rovers and aerial drones."
     ),
     version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    #note the endpoint here is from Vite's dev server for our frontend
+    allow_origins=["http://localhost:5173"],
+    #this allows us to pass an Authorization header (JWT)
+    allow_credentials=True,
+    #allows all methods and all headers through
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
 
 #include the /robots router in the FastAPI application. This means that all routes defined
